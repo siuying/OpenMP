@@ -1,0 +1,10 @@
+*.tar.xz
+ios.toolchain.cmake
+build-*
+lib-*
+cmake
+openmp
+.DS_Store
+!Sources/OpenMP
+/.build
+/.swiftpm
