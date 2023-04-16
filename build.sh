@@ -3,10 +3,13 @@ VERSION=16.0.0
 build() {
   # Build iOS
   PLATFORM=$1
+  DEPLOYMENT_TARGET=$2
   BUILD_PATH="build-${PLATFORM}"
+  export MACOSX_DEPLOYMENT_TARGET=$DEPLOYMENT_TARGET
   mkdir -p $BUILD_PATH
   cd $BUILD_PATH
   cmake -G Xcode -DCMAKE_TOOLCHAIN_FILE=../ios.toolchain.cmake -DPLATFORM="${PLATFORM}" -DENABLE_BITCODE=0 -DCMAKE_INSTALL_PREFIX="../lib-${PLATFORM}" \
+    -DLIBOMP_ENABLE_SHARED=OFF -DLIBOMP_OMPT_SUPPORT=OFF -DMACOSX_DEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}" -DDEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}" -DLIBOMP_USE_HWLOC=OFF ../openmp
     -DLIBOMP_ENABLE_SHARED=OFF -DLIBOMP_OMPT_SUPPORT=OFF -DLIBOMP_USE_HWLOC=OFF ../openmp
   cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED="NO" CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO"
   cmake --install . --config Release
@@ -29,7 +32,7 @@ mv "openmp-${VERSION}.src" "openmp"
 
 # Build iOS
 for PLATFORM in "OS64" "SIMULATORARM64"; do
-  build $PLATFORM
+  build $PLATFORM "11.0"
 done
 
 # Create iOS xcframeworks
@@ -39,9 +42,12 @@ xcodebuild -create-xcframework -library lib-OS64/lib/libomp.a -headers lib-OS64/
   -library lib-SIMULATORARM64/lib/libomp.a -headers lib-SIMULATORARM64/include \
   -output "frameworks/ios/OpenMP.xcframework"
 
-# # Build macOS
+rm -rf "Sources/OpenMP_iOS/OpenMP.xcframework"
+mv frameworks/ios/OpenMP.xcframework Sources/OpenMP_iOS
+
+# Build macOS
 for PLATFORM in "MAC" "MAC_ARM64"; do
-  build $PLATFORM
+  build $PLATFORM "10.13"
 done
 
 # Create Mac xcframeworks
@@ -53,7 +59,7 @@ lipo -create -output lib-MAC-universal/lib/libomp.a lib-MAC/lib/libomp.a lib-MAC
 xcodebuild -create-xcframework -library lib-MAC-universal/lib/libomp.a -headers lib-MAC/include \
   -output "frameworks/mac/OpenMP.xcframework"
 
-mv frameworks/ios/OpenMP.xcframework Sources/OpenMP_iOS
+rm -rf "Sources/OpenMP_Mac/OpenMP.xcframework"
 mv frameworks/mac/OpenMP.xcframework Sources/OpenMP_Mac
 
 rm -rf build-*
