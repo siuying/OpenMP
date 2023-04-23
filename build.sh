@@ -9,8 +9,8 @@ build() {
   mkdir -p $BUILD_PATH
   cd $BUILD_PATH
   cmake -G Xcode -DCMAKE_TOOLCHAIN_FILE=../ios.toolchain.cmake -DPLATFORM="${PLATFORM}" -DENABLE_BITCODE=0 -DCMAKE_INSTALL_PREFIX="../lib-${PLATFORM}" \
-    -DLIBOMP_ENABLE_SHARED=OFF -DLIBOMP_OMPT_SUPPORT=OFF -DMACOSX_DEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}" -DDEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}" -DLIBOMP_USE_HWLOC=OFF ../openmp
-    -DLIBOMP_ENABLE_SHARED=OFF -DLIBOMP_OMPT_SUPPORT=OFF -DLIBOMP_USE_HWLOC=OFF ../openmp
+    -DLIBOMP_ENABLE_SHARED=OFF -DLIBOMP_OMPT_SUPPORT=OFF -DLIBOMP_USE_HWLOC=OFF \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}" -DDEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}" ../openmp
   cmake --build . --config Release -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED="NO" CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO"
   cmake --install . --config Release
   cd ..
@@ -20,7 +20,7 @@ wget "https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.0/cmak
 wget "https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.0/openmp-${VERSION}.src.tar.xz"
 
 # cmake ios toolchain
-wegt "https://github.com/leetal/ios-cmake/blob/4.3.0/ios.toolchain.cmake"
+wget "https://raw.githubusercontent.com/leetal/ios-cmake/4.3.0/ios.toolchain.cmake"
 
 # we need cmake modules to build openmp
 tar vxfz "cmake-${VERSION}.src.tar.xz" "cmake-${VERSION}.src"
@@ -44,7 +44,6 @@ xcodebuild -create-xcframework -library lib-OS64/lib/libomp.a -headers lib-OS64/
 
 rm -rf "Sources/OpenMP_iOS/OpenMP.xcframework"
 mv frameworks/ios/OpenMP.xcframework Sources/OpenMP_iOS
-
 # Build macOS
 for PLATFORM in "MAC" "MAC_ARM64"; do
   build $PLATFORM "10.13"
